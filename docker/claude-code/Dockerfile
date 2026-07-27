@@ -12,6 +12,8 @@ ENV EDITOR=vim
 ENV VISUAL=vim
 ENV PATH="/home/${NON_ROOT_USER}/.local/bin:${PATH}"
 
+RUN echo 'export PATH="${CCC_CLAUDE_CONFIG_DIR}:${PATH}"' >> /home/${NON_ROOT_USER}/.bashrc
+
 ARG CACHE_BUST
 RUN curl -fsSL https://claude.ai/install.sh | bash
 RUN curl https://cursor.com/install -fsS | bash
