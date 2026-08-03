@@ -1,13 +1,14 @@
-name: Build and Push Base Image
+name: Build and Push Cusor-Cli Image
 
 on:
   schedule:
-    - cron: '0 2 1 * *'   # 毎月1日 2:00 (UTC) に実行
+    - cron: '0 0 * * 2'   # 毎週火曜 00:00 (UTC) に実行
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: coding-agent-container-base
+  BASE_IMAGE_NAME: ghcr.io/ytaka95/coding-agent-container-base
+  IMAGE_NAME: cursor-cli-container
 
 jobs:
   build:
@@ -35,33 +36,26 @@ jobs:
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
 
       - name: Log into registry ${{ env.REGISTRY }}
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
       # プラットフォームごとにビルドしてダイジェストでプッシュ（タグなし）
       - name: Build and push by digest
-        id: build
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
-        with:
-          context: .
-          file: docker/base/Dockerfile
-          platforms: ${{ matrix.platform }}
-          labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+        run: |
+          docker buildx build \
+            --platform ${{ matrix.platform }} \
+            --build-arg CACHE_BUST=${{ github.run_id }} \
+            --build-arg BASE_IMAGE=${{ BASE_IMAGE_NAME }} \
+            --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
+            --label "org.opencontainers.image.revision=${{ github.sha }}" \
+            --output type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true \
+            --metadata-file /tmp/metadata.json \
+            -f docker/cursor-cli/Dockerfile \
+            .
 
       - name: Export digest
         run: |
           mkdir -p /tmp/digests
-          digest="${{ steps.build.outputs.digest }}"
+          digest=$(jq -r '."containerimage.digest"' /tmp/metadata.json)
           touch "/tmp/digests/${digest#sha256:}"
 
       - name: Upload digest
@@ -73,7 +67,7 @@ jobs:
           retention-days: 1
 
   merge:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     needs: build
     permissions:
       contents: read
@@ -87,34 +81,37 @@ jobs:
           pattern: digests-*
           merge-multiple: true
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
-
       - name: Log into registry ${{ env.REGISTRY }}
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=schedule,pattern={{date 'YYYYMMDD'}}
-            type=sha,format=short
-            type=raw,value=latest,enable={{is_default_branch}}
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
       # amd64 と arm64 のダイジェストを結合してマルチアーキマニフェストを作成
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
+          TAGS=()
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          TAGS+=("${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${SHORT_SHA}")
+
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            DATE_TAG=$(date -u +%Y%m%d)
+            TAGS+=("${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${DATE_TAG}")
+          fi
+
+          if [ "${{ github.ref_name }}" = "${{ github.event.repository.default_branch }}" ]; then
+            TAGS+=("${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest")
+          fi
+
+          TAG_ARGS=""
+          for tag in "${TAGS[@]}"; do
+            TAG_ARGS="${TAG_ARGS} -t ${tag}"
+          done
+
+          echo "INSPECT_TAG=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${SHORT_SHA}" >> $GITHUB_ENV
+
           docker buildx imagetools create \
-            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            ${TAG_ARGS} \
             $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect ${{ env.INSPECT_TAG }}
