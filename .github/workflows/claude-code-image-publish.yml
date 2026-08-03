@@ -7,8 +7,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  BASE_IMAGE_NAME: ghcr.io/ytaka95/coding-agent-container-base
-  IMAGE_NAME: claude-code-container
+  BASE_IMAGE_NAME: ghcr.io/ytaka95/coding-agent-container/base
+  IMAGE_NAME: claude
 
 jobs:
   build:
@@ -47,7 +47,7 @@ jobs:
             --build-arg BASE_IMAGE=${{ env.BASE_IMAGE_NAME }} \
             --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
             --label "org.opencontainers.image.revision=${{ github.sha }}" \
-            --output type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true \
+            --output type=image,name=${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true \
             --metadata-file /tmp/metadata.json \
             -f docker/claude-code/Dockerfile \
             .
