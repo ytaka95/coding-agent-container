@@ -90,15 +90,16 @@ jobs:
         run: |
           TAGS=()
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          TAGS+=("${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${SHORT_SHA}")
+          IMAGE="${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME }}"
+          TAGS+=("${IMAGE}:sha-${SHORT_SHA}")
 
           if [ "${{ github.event_name }}" = "schedule" ]; then
             DATE_TAG=$(date -u +%Y%m%d)
-            TAGS+=("${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${DATE_TAG}")
+            TAGS+=("${IMAGE}:${DATE_TAG}")
           fi
 
           if [ "${{ github.ref_name }}" = "${{ github.event.repository.default_branch }}" ]; then
-            TAGS+=("${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest")
+            TAGS+=("${IMAGE}:latest")
           fi
 
           TAG_ARGS=""
@@ -106,11 +107,11 @@ jobs:
             TAG_ARGS="${TAG_ARGS} -t ${tag}"
           done
 
-          echo "INSPECT_TAG=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${SHORT_SHA}" >> $GITHUB_ENV
+          echo "INSPECT_TAG=${IMAGE}:sha-${SHORT_SHA}" >> $GITHUB_ENV
 
           docker buildx imagetools create \
             ${TAG_ARGS} \
-            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+            $(printf "${IMAGE}@sha256:%s " *)
 
       - name: Inspect image
         run: |
