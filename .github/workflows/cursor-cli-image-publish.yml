@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  BASE_IMAGE_NAME: ghcr.io/ytaka95/coding-agent-container-base
+  BASE_IMAGE_NAME: base
   IMAGE_NAME: cursor
 
 jobs:
@@ -44,7 +44,7 @@ jobs:
           docker buildx build \
             --platform ${{ matrix.platform }} \
             --build-arg CACHE_BUST=${{ github.run_id }} \
-            --build-arg BASE_IMAGE=${{ env.BASE_IMAGE_NAME }} \
+            --build-arg BASE_IMAGE=${{ env.REGISTRY }}/${{ github.repository }}/${{ env.BASE_IMAGE_NAME }} \
             --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
             --label "org.opencontainers.image.revision=${{ github.sha }}" \
             --output type=image,name=${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true \
