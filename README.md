@@ -28,19 +28,36 @@ To launch the container from the root directory of your project, follow these st
 
 Using [Apple container](https://github.com/apple/container):
 
+Pull image:
+
+```sh
+container image pull ghcr.io/ytaka95/claude-code-container/base:latest --platform linux/arm64
+container image pull ghcr.io/ytaka95/claude-code-container:latest --platform linux/arm64
+```
+
+Set environment variables and alias:
+
 ```sh
 CCC_CPUS=2
 CCC_MEMORY=4gb
 CCC_GHTOKEN="github_pat_xxx"
+
+CCC_HOST_CLAUDE_HOME_DIR=~/.config/claude-code-container
+CCC_HOST_CLAUDE_CONFIG_DIR=${CCC_HOST_CLAUDE_HOME_DIR}/.claude
+CCC_HOST_USR_LOCAL_BIN_DIR=${CCC_HOST_CLAUDE_HOME_DIR}/bin
+
 CCC_USER=ccuser
-CCC_CLAUDE_CONFIG_DIR=/home/${CCC_USER}/.config/claude
+CCC_CLAUDE_HOME_DIR=/home/${CCC_USER}/.config/claude-code
+CCC_CLAUDE_CONFIG_DIR=${CCC_CLAUDE_HOME_DIR}/.claude
+CCC_USR_LOCAL_BIN_DIR=${CCC_CLAUDE_HOME_DIR}/bin
+
 CCC_UV_PROJECT_ENVIRONMENT=.venv_ccc
 CCC_IMAGE_URL="ghcr.io/ytaka95/claude-code-container"
-
 alias ccc="container run --rm -it \
-  --mount type=bind,source=${HOME}/.config/claude-container,target=${CCC_CLAUDE_CONFIG_DIR} \
+  --mount type=bind,source=${CCC_HOST_CLAUDE_HOME_DIR},target=${CCC_CLAUDE_HOME_DIR} \
   --mount type=bind,source=\$(pwd),target=/workspace \
   -e CLAUDE_CONFIG_DIR=${CCC_CLAUDE_CONFIG_DIR} \
+  -e USER_LOCAL_BIN_DIR=${CCC_USR_LOCAL_BIN_DIR} \
   -e GITHUB_TOKEN=${CCC_GHTOKEN} \
   -e UV_PROJECT_ENVIRONMENT=${CCC_UV_PROJECT_ENVIRONMENT} \
   -e HOST_DIR=\$(pwd) \
