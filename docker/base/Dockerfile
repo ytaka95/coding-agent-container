@@ -141,3 +141,9 @@ RUN uv python install 3.13 && echo "alias python=\"$(uv python find 3.13)\"" >> 
 RUN mkdir ~/.aws && \
     printf "[default]\naws_access_key_id = \naws_secret_access_key = \n" >> ~/.aws/credentials && \
     printf "[local]\naws_access_key_id = local\naws_secret_access_key = local\nregion = us-east-1" >> ~/.aws/credentials 
+
+# Install aqua
+RUN curl -sSfL https://raw.githubusercontent.com/aquaproj/aqua-installer/v4.0.2/aqua-installer | bash
+
+# Install mise
+RUN curl https://mise.run | sh
