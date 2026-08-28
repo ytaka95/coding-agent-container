@@ -144,6 +144,7 @@ RUN mkdir ~/.aws && \
 
 # Install aqua
 RUN curl -sSfL https://raw.githubusercontent.com/aquaproj/aqua-installer/v4.0.2/aqua-installer | bash
+ENV PATH="/home/${NON_ROOT_USER}/.local/share/aquaproj-aqua/bin:${PATH}"
 
 # Install mise
-RUN curl https://mise.run | sh
+RUN curl https://mise.run | sh && echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
