@@ -1,4 +1,4 @@
-# claude-code-container
+# coding-agent-container
 
 A container image designed to securely run [Claude Code](https://docs.anthropic.com/en/docs/claude-code) within a container environment.
 This repository periodically builds the image using GitHub Actions and publishes it to the GitHub Container Registry.
@@ -11,8 +11,10 @@ As this repository serves primarily as my personal development tool, it may cont
 
 | Image Name | Purpose |
 | --- | --- |
-| `ghcr.io/ytaka95/claude-code-container` | Production-ready image containing Claude Code |
-| `ghcr.io/ytaka95/claude-code-container/base` | Base image including all development tools and dependencies |
+| `ghcr.io/ytaka95/coding-agent-container/claude` | Production-ready image containing Claude Code |
+| `ghcr.io/ytaka95/coding-agent-container/cursor` | Production-ready image containing Cursor CLI |
+| `ghcr.io/ytaka95/coding-agent-container/antigravity` | Production-ready image containing Antigravity CLI |
+| `ghcr.io/ytaka95/coding-agent-container/base` | Base image including all development tools and dependencies |
 
 ## Quick Start Guide
 
@@ -31,8 +33,8 @@ Using [Apple container](https://github.com/apple/container):
 Pull image:
 
 ```sh
-container image pull ghcr.io/ytaka95/claude-code-container/base:latest --platform linux/arm64
-container image pull ghcr.io/ytaka95/claude-code-container:latest --platform linux/arm64
+container image pull ghcr.io/ytaka95/coding-agent-container/base:latest --platform linux/arm64
+container image pull ghcr.io/ytaka95/coding-agent-container:latest --platform linux/arm64
 ```
 
 Set environment variables and alias:
@@ -42,7 +44,7 @@ CCC_CPUS=2
 CCC_MEMORY=4gb
 CCC_GHTOKEN="github_pat_xxx"
 
-CCC_HOST_CLAUDE_HOME_DIR=~/.config/claude-code-container
+CCC_HOST_CLAUDE_HOME_DIR=~/.config/coding-agent-container
 CCC_HOST_CLAUDE_CONFIG_DIR=${CCC_HOST_CLAUDE_HOME_DIR}/.claude
 CCC_HOST_USR_LOCAL_BIN_DIR=${CCC_HOST_CLAUDE_HOME_DIR}/bin
 
@@ -52,7 +54,7 @@ CCC_CLAUDE_CONFIG_DIR=${CCC_CLAUDE_HOME_DIR}/.claude
 CCC_USR_LOCAL_BIN_DIR=${CCC_CLAUDE_HOME_DIR}/bin
 
 CCC_UV_PROJECT_ENVIRONMENT=.venv_ccc
-CCC_IMAGE_URL="ghcr.io/ytaka95/claude-code-container"
+CCC_IMAGE_URL="ghcr.io/ytaka95/coding-agent-container"
 alias ccc="container run --rm -it \
   --mount type=bind,source=${CCC_HOST_CLAUDE_HOME_DIR},target=${CCC_CLAUDE_HOME_DIR} \
   --mount type=bind,source=\$(pwd),target=/workspace \
@@ -76,12 +78,22 @@ ccc
 
 ```sh
 # Base image
-docker build -t claude-code-container-base -f docker/base/Dockerfile .
+docker build -t coding-agent-container-base -f docker/base/Dockerfile .
 
-# Production image
-docker build -t claude-code-container \
-  --build-arg BASE_IMAGE=claude-code-container-base \
+# Claude Code image
+docker build -t coding-agent-container/claude \
+  --build-arg BASE_IMAGE=coding-agent-container-base \
   -f docker/claude-code/Dockerfile .
+
+# Cursor CLI image
+docker build -t coding-agent-container/cursor \
+  --build-arg BASE_IMAGE=coding-agent-container-base \
+  -f docker/cursor-cli/Dockerfile .
+
+# Antigravity CLI image
+docker build -t coding-agent-container/antigravity \
+  --build-arg BASE_IMAGE=coding-agent-container-base \
+  -f docker/antigravity-cli/Dockerfile .
 ```
 
 ## License
