@@ -11,7 +11,9 @@ As this repository serves primarily as my personal development tool, it may cont
 
 | Image Name | Purpose |
 | --- | --- |
-| `ghcr.io/ytaka95/claude-code-container` | Production-ready image containing Claude Code |
+| `ghcr.io/ytaka95/claude-code-container/claude` | Production-ready image containing Claude Code |
+| `ghcr.io/ytaka95/claude-code-container/cursor` | Production-ready image containing Cursor CLI |
+| `ghcr.io/ytaka95/claude-code-container/antigravity` | Production-ready image containing Antigravity CLI |
 | `ghcr.io/ytaka95/claude-code-container/base` | Base image including all development tools and dependencies |
 
 ## Quick Start Guide
@@ -78,10 +80,20 @@ ccc
 # Base image
 docker build -t claude-code-container-base -f docker/base/Dockerfile .
 
-# Production image
-docker build -t claude-code-container \
+# Claude Code image
+docker build -t claude-code-container/claude \
   --build-arg BASE_IMAGE=claude-code-container-base \
   -f docker/claude-code/Dockerfile .
+
+# Cursor CLI image
+docker build -t claude-code-container/cursor \
+  --build-arg BASE_IMAGE=claude-code-container-base \
+  -f docker/cursor-cli/Dockerfile .
+
+# Antigravity CLI image
+docker build -t claude-code-container/antigravity \
+  --build-arg BASE_IMAGE=claude-code-container-base \
+  -f docker/antigravity-cli/Dockerfile .
 ```
 
 ## License
