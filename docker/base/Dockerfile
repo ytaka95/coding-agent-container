@@ -36,7 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     vim \
     wget \
     xz-utils \
-    pkg-config libgnutls28-dev libtinfo-dev texinfo \  # for Emacs
+    pkg-config libgnutls28-dev libtinfo-dev texinfo \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN update-ca-certificates
