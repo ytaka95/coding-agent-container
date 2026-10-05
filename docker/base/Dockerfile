@@ -119,7 +119,8 @@ RUN wget http://ftpmirror.gnu.org/emacs/emacs-31.1.tar.gz && \
     tar zxf emacs-31.1.tar.gz && \
     cd emacs-31.1 && \
     ./configure && make && \
-    make install
+    make install && \
+    rm -rf emacs-31.1*
 
 # Set up non-root user
 RUN useradd -u 501 -m ${NON_ROOT_USER}
