@@ -36,6 +36,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     vim \
     wget \
     xz-utils \
+    zip \
+    unzip \
+    zstd \
     pkg-config libgnutls28-dev libtinfo-dev texinfo \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
