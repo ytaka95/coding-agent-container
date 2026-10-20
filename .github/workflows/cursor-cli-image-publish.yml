@@ -1,8 +1,8 @@
 name: Build and Push Cusor-Cli Image
 
 on:
-  schedule:
-    - cron: '0 0 * * 2'   # 毎週火曜 00:00 (UTC) に実行
+  # schedule:
+  #   - cron: '0 0 * * 2'   # 毎週火曜 00:00 (UTC) に実行
   workflow_dispatch:
 
 env:
