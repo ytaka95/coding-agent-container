@@ -97,8 +97,7 @@ RUN case ${TARGETARCH} in \
     esac && \
     wget https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz && \
     tar -xJf node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz -C /usr/local --strip-components=1 --no-same-owner && \
-    rm node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz && \
-    corepack enable pnpm
+    rm node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz
 
 ## AWS CLI
 RUN case ${TARGETARCH} in \
