@@ -97,7 +97,8 @@ RUN case ${TARGETARCH} in \
     esac && \
     wget https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz && \
     tar -xJf node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz -C /usr/local --strip-components=1 --no-same-owner && \
-    rm node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz
+    rm node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz && \
+    corepack enable pnpm
 
 ## AWS CLI
 RUN case ${TARGETARCH} in \
@@ -142,6 +143,9 @@ USER ${NON_ROOT_USER}
 # Install global packages
 ENV NPM_CONFIG_PREFIX=/usr/local/share/npm-global
 ENV PATH="/usr/local/share/npm-global/bin:${PATH}"
+
+## activate pnpm
+RUN corepack prepare pnpm@latest --activate
 
 ## install Python
 RUN uv python install 3.13 && echo "alias python=\"$(uv python find 3.13)\"" >> ~/.bashrc
