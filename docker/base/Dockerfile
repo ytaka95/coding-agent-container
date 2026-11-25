@@ -71,7 +71,7 @@ RUN uv tool install pybind11
 ## go
 ARG GO_VERSION=1.26.2
 ARG TARGETARCH
-RUN wget https://go.dev/dl/go${GO_VERSION}.linux-${TARGETARCH}.tar.gz && \
+RUN wget --tries=10 --timeout=3 https://go.dev/dl/go${GO_VERSION}.linux-${TARGETARCH}.tar.gz && \
     tar -C /usr/local -xzf go${GO_VERSION}.linux-${TARGETARCH}.tar.gz && \
     rm -rf go${GO_VERSION}.linux-${TARGETARCH}*
 ENV PATH="/usr/local/go/bin:${PATH}"
@@ -84,7 +84,7 @@ RUN GOBIN=/usr/local/bin go install golang.org/x/tools/gopls@latest
 ################################################
 ## terraform-ls
 RUN apt-get install -y --no-install-recommends gpg && \
-    wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg && \
+    wget --tries=10 --timeout=3 -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg && \
     gpg --no-default-keyring --keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg --fingerprint && \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com noble main" | tee /etc/apt/sources.list.d/hashicorp.list && \
     apt-get update && \
@@ -99,7 +99,7 @@ RUN case ${TARGETARCH} in \
         "amd64") NODE_ARCH="x64" ;; \
         "arm64") NODE_ARCH="arm64" ;; \
     esac && \
-    wget https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz && \
+    wget --tries=10 --timeout=3 https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz && \
     tar -xJf node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz -C /usr/local --strip-components=1 --no-same-owner && \
     rm node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz && \
     corepack enable pnpm
@@ -139,7 +139,7 @@ RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Emacs
-RUN wget http://ftpmirror.gnu.org/emacs/emacs-31.1.tar.gz && \
+RUN wget --tries=20 --timeout=3 http://ftpmirror.gnu.org/emacs/emacs-31.1.tar.gz && \
     tar zxf emacs-31.1.tar.gz && \
     cd emacs-31.1 && \
     ./configure && make && \
