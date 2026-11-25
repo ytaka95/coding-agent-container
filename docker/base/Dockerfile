@@ -104,6 +104,23 @@ RUN case ${TARGETARCH} in \
     rm node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz && \
     corepack enable pnpm
 
+################################################
+# Chromium (ブラウザテスト用 / puppeteer-core)    #
+################################################
+# arm64 では google-chrome が配布されていないため Playwright の Chromium を使う
+ARG PLAYWRIGHT_VERSION=1.65.1
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers
+RUN COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
+    pnpm dlx playwright@${PLAYWRIGHT_VERSION} install --with-deps --no-shell chromium && \
+    ln -sf "$(find ${PLAYWRIGHT_BROWSERS_PATH} -path '*/chrome-linux*/chrome' -type f | head -1)" /usr/bin/chromium && \
+    chmod -R a+rX ${PLAYWRIGHT_BROWSERS_PATH} && \
+    /usr/bin/chromium --version && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /root/.cache /root/.local/share/pnpm
+ENV CHROME_PATH=/usr/bin/chromium
+
+################################################
+# その他のツール類                                #
+################################################
 ## AWS CLI
 RUN case ${TARGETARCH} in \
         "amd64") AWS_ARCH="x86_64" ;; \
@@ -129,6 +146,9 @@ RUN wget http://ftpmirror.gnu.org/emacs/emacs-31.1.tar.gz && \
     make install && \
     rm -rf emacs-31.1*
 
+################################################
+# 非rootユーザ設定                               #
+################################################
 # Set up non-root user
 RUN useradd -u 501 -m ${NON_ROOT_USER}
 
